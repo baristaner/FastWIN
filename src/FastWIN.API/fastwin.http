@@ -1,0 +1,6 @@
+@fastwin_HostAddress = http://localhost:5231
+
+GET {{fastwin_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
