@@ -1,9 +1,8 @@
-﻿using fastwin.Interfaces;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace fastwin.Entities
 {
-    public class BaseEntity : IEntity
+    public abstract class BaseEntity 
     {
         [Key]
         public int Id { get; set; }

@@ -25,6 +25,11 @@ namespace fastwin
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
                 
+                //if(entry.State == EntityState.Added)
+                //{
+                   
+                //}
+
                 if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.ModifiedAt = now;
