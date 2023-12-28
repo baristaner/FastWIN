@@ -14,22 +14,23 @@ namespace fastwin.Repository
             _context = context;
         }
 
-        public void GenerateCodes()
+        public async Task GenerateCodesAsync()
         {
-            _context.Database.ExecuteSqlRaw("EXEC dbo.GenerateCodes");
+            await _context.Database.ExecuteSqlRawAsync("EXEC dbo.GenerateCodes");
+            
         }
 
-        public IEnumerable<Codes> GetCodes()
+        public async Task<IEnumerable<Codes>> GetCodesAsync()
         {
-            return _context.Codes.ToList();
+            return await _context.Codes.ToListAsync();
         }
 
-        public async Task<Codes> GetCodeById(int id)
+        public async Task<Codes> GetCodeByIdAsync(int id)
         {
             return await _context.Codes.FindAsync(id);
         }
 
-        public async Task UpdateCode(int id, string newCode, bool isActive)
+        public async Task<Codes> UpdateCodeAsync(int id, string newCode, bool isActive)
         {
             var codeToUpdate = await _context.Codes.FindAsync(id);
 
@@ -37,12 +38,13 @@ namespace fastwin.Repository
             {
                 codeToUpdate.Code = newCode;
                 codeToUpdate.IsActive = isActive;
-                codeToUpdate.ModifiedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
+                return codeToUpdate; 
             }
-        }
 
+            return null; 
+        }
 
     }
 }
