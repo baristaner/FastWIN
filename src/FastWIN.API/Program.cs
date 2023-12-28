@@ -20,7 +20,6 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 
 builder.Services.AddScoped<CodeRepository>();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

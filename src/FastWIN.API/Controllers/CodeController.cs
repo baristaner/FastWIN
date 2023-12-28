@@ -15,18 +15,18 @@ namespace fastwin.Controllers
         }
 
         [HttpPost("generate-codes")]
-        public IActionResult GenerateCodes()
+        public async Task<IActionResult> GenerateCodes()
         {
-            _repository.GenerateCodes();
+            await _repository.GenerateCodesAsync();
             return Ok("Codes generated successfully.");
         }
 
         [HttpGet("get-codes")]
-        public IActionResult GetCodes()
+        public async Task <IActionResult> GetCodes()
         {
             try
             {
-                var codes = _repository.GetCodes();
+                var codes = await _repository.GetCodesAsync();
 
                 if (codes == null)
                 {
@@ -47,7 +47,7 @@ namespace fastwin.Controllers
         {
             try
             {
-                var code = await _repository.GetCodeById(id);
+                var code = await _repository.GetCodeByIdAsync(id);
 
                 if (code == null)
                 {
@@ -72,8 +72,20 @@ namespace fastwin.Controllers
 
             try
             {
-                await _repository.UpdateCode(id, newCode,isActive);
-                return Ok("Code updated successfully");
+                if (newCode.Length != 10)
+                {
+                    return BadRequest("newCode must have a length of 10 characters");
+                }
+
+                var codeToUpdate = await _repository.UpdateCodeAsync(id, newCode, isActive);
+
+                if (codeToUpdate != null)
+                {
+                return Ok(codeToUpdate);
+                } else
+                {
+                    return NotFound($"Code with Id {id} not found");
+                }
             }
             catch (Exception ex)
             {

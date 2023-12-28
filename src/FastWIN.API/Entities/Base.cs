@@ -1,12 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using fastwin.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace fastwin.Entities
 {
-    public class BaseEntity
+    public class BaseEntity : IEntity
     {
         [Key]
         public int Id { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } 
+        public DateTime ModifiedAt { get; set; } 
     }
 }

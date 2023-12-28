@@ -7,9 +7,9 @@ namespace fastwin.Models
     {
 
         [StringLength(10)]
-        public string? Code { get; set; }
+        public string Code { get; set; }
 
-        public DateTime? ExpirationDate { get; set; } = DateTime.UtcNow;
+        public DateTime ExpirationDate { get; set; } 
 
         public bool IsActive { get; set; }
     }
