@@ -1,14 +1,22 @@
 using fastwin;
-using fastwin.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using fastwin.Repository.Repositories;
+using fastwin.Interfaces;
+using fastwin.Models;
+using FastWIN.API.Converters;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers()
+.AddJsonOptions(options =>
+{
+  options.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter());
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -18,7 +26,11 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
            .LogTo(Console.WriteLine, LogLevel.Information); // Add logging
 });
 
-builder.Services.AddScoped<CodeRepository>();
+
+builder.Services.AddScoped<IRepository<Codes>, GenericRepository<Codes>>();
+builder.Services.AddScoped<ICodeRepository, CodeRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 
 var app = builder.Build();
 

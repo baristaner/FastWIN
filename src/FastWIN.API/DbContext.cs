@@ -7,6 +7,7 @@ namespace fastwin
     public class CodeDbContext : DbContext
     {
         public DbSet<Codes> Codes { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         public CodeDbContext(DbContextOptions<CodeDbContext> options) : base(options)
         {
@@ -25,10 +26,11 @@ namespace fastwin
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
                 
-                //if(entry.State == EntityState.Added)
-                //{
-                   
-                //}
+                if(entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedAt = now;
+                    entry.Entity.ModifiedAt = now;
+                }
 
                 if (entry.State == EntityState.Modified)
                 {

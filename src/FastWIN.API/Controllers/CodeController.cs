@@ -1,6 +1,6 @@
-﻿using fastwin.Repository;
-using Microsoft.AspNetCore.Http;
+﻿using fastwin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using fastwin.Dto;
 
 namespace fastwin.Controllers
 {
@@ -8,37 +8,38 @@ namespace fastwin.Controllers
     [ApiController]
     public class CodeController : ControllerBase
     {
-        private readonly CodeRepository _repository;
-        public CodeController(CodeRepository repository)
+        private readonly ICodeRepository _repository;
+
+        public CodeController(ICodeRepository repository)
         {
             _repository = repository;
         }
 
         [HttpPost("generate-codes")]
-        public async Task<IActionResult> GenerateCodes()
+        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequestDto request)
         {
-            await _repository.GenerateCodesAsync();
+            await _repository.GenerateCodesAsync(request.NumOfCodes, request.CharacterSet, request.ExpirationMonths, request.ExpirationDate);
             return Ok("Codes generated successfully.");
         }
 
-        [HttpGet("get-codes")]
-        public async Task <IActionResult> GetCodes()
+
+        [HttpGet("get-all-codes")]
+        public async Task<IActionResult> GetAllCodes()
         {
             try
             {
-                var codes = await _repository.GetCodesAsync();
+                var codes = await _repository.GetAllAsync();
 
-                if (codes == null)
+                if (codes == null || !codes.Any())
                 {
-                    return NotFound("Codes not found or does not exist in the database.");
+                    return NotFound("No codes found in the database.");
                 }
 
                 return Ok(codes);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
- 
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -47,7 +48,7 @@ namespace fastwin.Controllers
         {
             try
             {
-                var code = await _repository.GetCodeByIdAsync(id);
+                var code = await _repository.GetByIdAsync(id);
 
                 if (code == null)
                 {
@@ -77,12 +78,18 @@ namespace fastwin.Controllers
                     return BadRequest("newCode must have a length of 10 characters");
                 }
 
-                var codeToUpdate = await _repository.UpdateCodeAsync(id, newCode, isActive);
+                var codeToUpdate = await _repository.GetByIdAsync(id);
 
                 if (codeToUpdate != null)
                 {
-                return Ok(codeToUpdate);
-                } else
+                    codeToUpdate.Code = newCode;
+                    codeToUpdate.IsActive = isActive;
+
+                    await _repository.UpdateAsync(codeToUpdate);
+
+                    return Ok(codeToUpdate);
+                }
+                else
                 {
                     return NotFound($"Code with Id {id} not found");
                 }
@@ -92,8 +99,6 @@ namespace fastwin.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-
 
     }
 }
