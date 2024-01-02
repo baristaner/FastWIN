@@ -50,5 +50,10 @@ namespace fastwin.Repository.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task ExecuteStoredProcedureAsync(string sql, params object[] parameters)
+        {
+            await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+        }
     }
 }

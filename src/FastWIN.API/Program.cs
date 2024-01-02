@@ -28,11 +28,9 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 });
 
 
-builder.Services.AddScoped<IRepository<Codes>, GenericRepository<Codes>>();
-builder.Services.AddScoped<IRepository<Product>, GenericRepository<Product>>();
-builder.Services.AddScoped<ICodeRepository, CodeRepository>();
 
-
+builder.Services.AddScoped(typeof(IRepository<Codes>),typeof(GenericRepository<Codes>));
+builder.Services.AddScoped(typeof(IRepository<Product>), typeof(GenericRepository<Product>));
 
 var app = builder.Build();
 

@@ -11,5 +11,7 @@ namespace fastwin.Interfaces
         Task AddAsync(TEntity entity);
         Task UpdateAsync(TEntity entity);
         Task DeleteAsync(int id);
+        Task ExecuteStoredProcedureAsync(string sql, params object[] parameters);
+
     }
 }

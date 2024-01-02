@@ -1,6 +1,9 @@
 ﻿using fastwin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using fastwin.Requests;
+using fastwin.Entities;
+using fastwin.Models;
+using Microsoft.Data.SqlClient;
 
 namespace fastwin.Controllers
 {
@@ -8,20 +11,39 @@ namespace fastwin.Controllers
     [ApiController]
     public class CodeController : ControllerBase
     {
-        private readonly ICodeRepository _repository;
+        private readonly IRepository<Codes> _repository;
 
-        public CodeController(ICodeRepository repository)
+        public CodeController(IRepository<Codes> repository)
         {
             _repository = repository;
         }
 
         [HttpPost("generate-codes")]
-        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest request)
+        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest generateCodesRequest)
         {
-            await _repository.GenerateCodesAsync(request.NumOfCodes, request.CharacterSet, request.ExpirationMonths, request.ExpirationDate);
-            return Ok("Codes generated successfully.");
-        }
+            try
+            {
+                string sql = "EXEC dbo.sp_GenerateCodes @NumOfCodes, @CharacterSet, @ExpirationMonths, @ExpirationDate";
 
+                
+                var parameters = new[]
+                {
+                new SqlParameter("@NumOfCodes", generateCodesRequest.NumOfCodes),
+                new SqlParameter("@CharacterSet", generateCodesRequest.CharacterSet),
+                new SqlParameter("@ExpirationMonths", generateCodesRequest.ExpirationMonths),
+                new SqlParameter("@ExpirationDate", (object)generateCodesRequest.ExpirationDate ?? DBNull.Value)
+                };
+
+                await _repository.ExecuteStoredProcedureAsync(sql, parameters);
+
+
+                return Ok("Codes generated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
         [HttpGet("get-all-codes")]
         public async Task<IActionResult> GetAllCodes()
