@@ -9,9 +9,9 @@ namespace fastwin.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _repository;
+        private readonly IRepository<Product> _repository;
 
-        public ProductController(IProductRepository repository)
+        public ProductController(IRepository<Product> repository)
         {
             _repository = repository;
         }

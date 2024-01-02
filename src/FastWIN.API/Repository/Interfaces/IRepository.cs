@@ -1,14 +1,15 @@
-﻿using System.Linq.Expressions;
+﻿using fastwin.Entities;
+using System.Linq.Expressions;
 
 namespace fastwin.Interfaces
 {
-    public interface IRepository<T>
+    public interface IRepository<TEntity> where TEntity : BaseEntity
     {
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T> GetByIdAsync(int id);
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
-        Task AddAsync(T entity);
-        Task UpdateAsync(T entity);
+        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task<TEntity> GetByIdAsync(int id);
+        Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
+        Task AddAsync(TEntity entity);
+        Task UpdateAsync(TEntity entity);
         Task DeleteAsync(int id);
     }
 }

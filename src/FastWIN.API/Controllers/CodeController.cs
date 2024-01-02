@@ -1,6 +1,6 @@
 ﻿using fastwin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using fastwin.Dto;
+using fastwin.Requests;
 
 namespace fastwin.Controllers
 {
@@ -16,7 +16,7 @@ namespace fastwin.Controllers
         }
 
         [HttpPost("generate-codes")]
-        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequestDto request)
+        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest request)
         {
             await _repository.GenerateCodesAsync(request.NumOfCodes, request.CharacterSet, request.ExpirationMonths, request.ExpirationDate);
             return Ok("Codes generated successfully.");

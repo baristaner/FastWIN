@@ -5,6 +5,7 @@ using fastwin.Repository.Repositories;
 using fastwin.Interfaces;
 using fastwin.Models;
 using FastWIN.API.Converters;
+using fastwin.Entities;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,8 +29,9 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 
 
 builder.Services.AddScoped<IRepository<Codes>, GenericRepository<Codes>>();
+builder.Services.AddScoped<IRepository<Product>, GenericRepository<Product>>();
 builder.Services.AddScoped<ICodeRepository, CodeRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 
 
 var app = builder.Build();
