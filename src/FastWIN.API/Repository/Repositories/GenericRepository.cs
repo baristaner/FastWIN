@@ -37,7 +37,8 @@ namespace fastwin.Repository.Repositories
 
         public async Task UpdateAsync(TEntity entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            if (entity == null) throw new ArgumentNullException("entity");
+            _context.Update(entity);
             await _context.SaveChangesAsync();
         }
 
@@ -51,9 +52,14 @@ namespace fastwin.Repository.Repositories
             }
         }
 
-        public async Task ExecuteStoredProcedureAsync(string sql, params object[] parameters)
+        public async Task ExecuteStoredProcedureAsync(string sql, params object[] parameters) 
         {
             await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+        }
+
+        public async Task<IEnumerable<TEntity>> ExecuteSqlQueryAsync<TEntity>(string sql, params object[] parameters) where TEntity : class
+        {
+            return await _context.Set<TEntity>().FromSqlRaw(sql, parameters).ToListAsync();
         }
     }
 }

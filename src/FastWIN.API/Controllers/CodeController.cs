@@ -25,19 +25,38 @@ namespace fastwin.Controllers
             {
                 string sql = "EXEC dbo.sp_GenerateCodes @NumOfCodes, @CharacterSet, @ExpirationMonths, @ExpirationDate";
 
-                
                 var parameters = new[]
                 {
-                new SqlParameter("@NumOfCodes", generateCodesRequest.NumOfCodes),
-                new SqlParameter("@CharacterSet", generateCodesRequest.CharacterSet),
-                new SqlParameter("@ExpirationMonths", generateCodesRequest.ExpirationMonths),
-                new SqlParameter("@ExpirationDate", (object)generateCodesRequest.ExpirationDate ?? DBNull.Value)
+                 new SqlParameter("@NumOfCodes", generateCodesRequest.NumOfCodes),
+                 new SqlParameter("@CharacterSet", generateCodesRequest.CharacterSet),
+                 new SqlParameter("@ExpirationMonths", generateCodesRequest.ExpirationMonths),
+                 new SqlParameter("@ExpirationDate", (object)generateCodesRequest.ExpirationDate ?? DBNull.Value)
                 };
 
-                await _repository.ExecuteStoredProcedureAsync(sql, parameters);
 
+                await _repository.ExecuteStoredProcedureAsync(sql, parameters);
+                
 
                 return Ok("Codes generated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("testSelect")]
+        public async Task<IActionResult> TestSelect()
+        {
+            try
+            {
+                // Example SQL query
+                string selectSql = "SELECT * FROM Codes";
+
+                // Execute the SQL query (no need to await if the result is not needed)
+                var result = await _repository.ExecuteSqlQueryAsync<Codes>(selectSql);
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
