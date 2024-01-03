@@ -1,6 +1,9 @@
-﻿using fastwin.Repository;
-using Microsoft.AspNetCore.Http;
+﻿using fastwin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using fastwin.Requests;
+using fastwin.Entities;
+using fastwin.Models;
+using Microsoft.Data.SqlClient;
 
 namespace fastwin.Controllers
 {
@@ -8,37 +11,76 @@ namespace fastwin.Controllers
     [ApiController]
     public class CodeController : ControllerBase
     {
-        private readonly CodeRepository _repository;
-        public CodeController(CodeRepository repository)
+        private readonly IRepository<Codes> _repository;
+
+        public CodeController(IRepository<Codes> repository)
         {
             _repository = repository;
         }
 
         [HttpPost("generate-codes")]
-        public async Task<IActionResult> GenerateCodes()
-        {
-            await _repository.GenerateCodesAsync();
-            return Ok("Codes generated successfully.");
-        }
-
-        [HttpGet("get-codes")]
-        public async Task <IActionResult> GetCodes()
+        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest generateCodesRequest)
         {
             try
             {
-                var codes = await _repository.GetCodesAsync();
+                string sql = "EXEC dbo.sp_GenerateCodes @NumOfCodes, @CharacterSet, @ExpirationMonths, @ExpirationDate";
 
-                if (codes == null)
+                var parameters = new[]
                 {
-                    return NotFound("Codes not found or does not exist in the database.");
+                 new SqlParameter("@NumOfCodes", generateCodesRequest.NumOfCodes),
+                 new SqlParameter("@CharacterSet", generateCodesRequest.CharacterSet),
+                 new SqlParameter("@ExpirationMonths", generateCodesRequest.ExpirationMonths),
+                 new SqlParameter("@ExpirationDate", (object)generateCodesRequest.ExpirationDate ?? DBNull.Value)
+                };
+
+
+                await _repository.ExecuteStoredProcedureAsync(sql, parameters);
+                
+
+                return Ok("Codes generated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("testSelect")]
+        public async Task<IActionResult> TestSelect()
+        {
+            try
+            {
+                // Example SQL query
+                string selectSql = "SELECT * FROM Codes";
+
+                // Execute the SQL query (no need to await if the result is not needed)
+                var result = await _repository.ExecuteSqlQueryAsync<Codes>(selectSql);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("get-all-codes")]
+        public async Task<IActionResult> GetAllCodes()
+        {
+            try
+            {
+                var codes = await _repository.GetAllAsync();
+
+                if (codes == null || !codes.Any())
+                {
+                    return NotFound("No codes found in the database.");
                 }
 
                 return Ok(codes);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
- 
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -47,7 +89,7 @@ namespace fastwin.Controllers
         {
             try
             {
-                var code = await _repository.GetCodeByIdAsync(id);
+                var code = await _repository.GetByIdAsync(id);
 
                 if (code == null)
                 {
@@ -77,12 +119,18 @@ namespace fastwin.Controllers
                     return BadRequest("newCode must have a length of 10 characters");
                 }
 
-                var codeToUpdate = await _repository.UpdateCodeAsync(id, newCode, isActive);
+                var codeToUpdate = await _repository.GetByIdAsync(id);
 
                 if (codeToUpdate != null)
                 {
-                return Ok(codeToUpdate);
-                } else
+                    codeToUpdate.Code = newCode;
+                    codeToUpdate.IsActive = isActive;
+
+                    await _repository.UpdateAsync(codeToUpdate);
+
+                    return Ok(codeToUpdate);
+                }
+                else
                 {
                     return NotFound($"Code with Id {id} not found");
                 }
@@ -92,8 +140,6 @@ namespace fastwin.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-
 
     }
 }
