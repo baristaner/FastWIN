@@ -1,7 +1,8 @@
-﻿using fastwin.Entities;
-using fastwin.Interfaces;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using fastwin.Dto;
+using System.Threading.Tasks;
+using fastwin.Requests;
+using FluentValidation;
 
 namespace fastwin.Controllers
 {
@@ -9,36 +10,35 @@ namespace fastwin.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IRepository<Product> _repository;
+        private readonly IMediator _mediator;
 
-        public ProductController(IRepository<Product> repository)
+        public ProductController(IMediator mediator)
         {
-            _repository = repository;
+            _mediator = mediator;
         }
 
         [HttpPost("add-product")]
-        public async Task<IActionResult> AddProduct([FromBody] ProductRequestDto productDto)
+        public async Task<IActionResult> AddProduct([FromBody] ProductRequest productDto)
         {
-
             try
             {
-                if (!Enum.IsDefined(typeof(Category), productDto.Category))
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest($"Invalid product category. Allowed categories are: {string.Join(", ", Enum.GetNames(typeof(Category)))}");
+                    var validationErrors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
 
+                    return BadRequest(validationErrors);
                 }
 
-                var product = new Product
-                {
-                    Name = productDto.Name,
-                    Description = productDto.Description,
-                    Category = Enum.Parse<Category>(productDto.Category),
-                    LastUsageDate = productDto.LastUsageDate
-                };
+                var result = await _mediator.Send(new AddProductCommand(productDto));
 
-                await _repository.AddAsync(product);
-
-                return Ok(product);
+                return Ok(productDto);
+            }
+            catch (ValidationException vex)
+            {
+                return BadRequest(vex.Message);
             }
             catch (Exception ex)
             {

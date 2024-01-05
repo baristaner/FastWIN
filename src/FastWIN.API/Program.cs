@@ -1,12 +1,12 @@
 using fastwin;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using fastwin.Repository.Repositories;
 using fastwin.Interfaces;
-using fastwin.Models;
 using FastWIN.API.Converters;
-using fastwin.Entities;
-
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using MediatR;
+using fastwin.Features.Products.Commands.AddProduct;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,13 +18,24 @@ builder.Services.AddControllers()
   options.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter());
 });
 
+builder.Services.AddFluentValidationAutoValidation()
+    .AddFluentValidationClientsideAdapters()
+    .AddValidatorsFromAssemblyContaining<ProductValidator>();
+
+
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
 
 builder.Services.AddDbContext<CodeDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .LogTo(Console.WriteLine, LogLevel.Information); // Add logging
+           .LogTo(Console.WriteLine, LogLevel.Information); 
 });
 
 
@@ -45,8 +56,6 @@ app.UseCors(builder => builder
 .AllowAnyMethod()
 .AllowAnyHeader()
 );
-
-
 
 app.UseAuthorization();
 

@@ -19,7 +19,7 @@ namespace fastwin.Entities
 
     public enum Category
     {
-        Beverage,
+        Beverage, 
         Snacks
     }
 

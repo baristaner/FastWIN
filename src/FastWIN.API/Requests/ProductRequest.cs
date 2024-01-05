@@ -1,6 +1,6 @@
-﻿namespace fastwin.Dto
+﻿namespace fastwin.Requests
 {
-    public class ProductRequestDto
+    public class ProductRequest
     {
         public string Name { get; set; }
         public string Description { get; set; }
