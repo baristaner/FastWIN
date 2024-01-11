@@ -18,7 +18,7 @@ namespace fastwin.Controllers
         }
 
         [HttpPost("add-product")]
-        public async Task<IActionResult> AddProduct([FromBody] ProductRequest productDto)
+        public async Task<IActionResult> AddProduct([FromBody] ProductRequest productDto,CancellationToken cancellationToken)
         {
             try
             {
@@ -32,7 +32,9 @@ namespace fastwin.Controllers
                     return BadRequest(validationErrors);
                 }
 
-                var result = await _mediator.Send(new AddProductCommand(productDto));
+                var product = new AddProductCommand(productDto);
+
+                var result = await _mediator.Send(product,cancellationToken);
 
                 return Ok(productDto);
             }

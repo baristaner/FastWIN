@@ -1,9 +1,11 @@
 ﻿using fastwin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using fastwin.Requests;
-using fastwin.Entities;
 using fastwin.Models;
-using Microsoft.Data.SqlClient;
+using MediatR;
+using FluentValidation;
+using fastwin.Features.Code.Queries.GetAllCodes;
+using System.Threading;
 
 namespace fastwin.Controllers
 {
@@ -11,52 +13,37 @@ namespace fastwin.Controllers
     [ApiController]
     public class CodeController : ControllerBase
     {
-        private readonly IRepository<Codes> _repository;
+        private readonly IMediator _mediator;
 
-        public CodeController(IRepository<Codes> repository)
+        public CodeController(IMediator mediator)
         {
-            _repository = repository;
+            _mediator = mediator;
         }
 
         [HttpPost("generate-codes")]
-        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest generateCodesRequest)
+        public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest generateCodesRequest, CancellationToken cancellationToken)
         {
             try
             {
-                string sql = "EXEC dbo.sp_GenerateCodes @NumOfCodes, @CharacterSet, @ExpirationMonths, @ExpirationDate";
-
-                var parameters = new[]
+                if (!ModelState.IsValid)
                 {
-                 new SqlParameter("@NumOfCodes", generateCodesRequest.NumOfCodes),
-                 new SqlParameter("@CharacterSet", generateCodesRequest.CharacterSet),
-                 new SqlParameter("@ExpirationMonths", generateCodesRequest.ExpirationMonths),
-                 new SqlParameter("@ExpirationDate", (object)generateCodesRequest.ExpirationDate ?? DBNull.Value)
-                };
+                    var validationErrors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
 
+                    return BadRequest(validationErrors);
+                }
 
-                await _repository.ExecuteStoredProcedureAsync(sql, parameters);
+                var generateCodesCommand = new GenerateCodesCommand(generateCodesRequest);
                 
+                var generatedCodes = await _mediator.Send(generateCodesCommand, cancellationToken);
 
-                return Ok("Codes generated successfully.");
+                return Ok("Codes Generated successfuly");
             }
-            catch (Exception ex)
+            catch (ValidationException vex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("testSelect")]
-        public async Task<IActionResult> TestSelect()
-        {
-            try
-            {
-                // Example SQL query
-                string selectSql = "SELECT * FROM Codes";
-
-                // Execute the SQL query (no need to await if the result is not needed)
-                var result = await _repository.ExecuteSqlQueryAsync<Codes>(selectSql);
-
-                return Ok(result);
+                return BadRequest(vex.Message);
             }
             catch (Exception ex)
             {
@@ -65,18 +52,14 @@ namespace fastwin.Controllers
         }
 
         [HttpGet("get-all-codes")]
-        public async Task<IActionResult> GetAllCodes()
+        public async Task<IActionResult> GetAllCodes(CancellationToken cancellationToken) // HTTP REST API STANDARTS
         {
             try
             {
-                var codes = await _repository.GetAllAsync();
+                var getAllCodesQuery = new GetAllCodesQuery();
+                var allCodes = await _mediator.Send(getAllCodesQuery,cancellationToken);
 
-                if (codes == null || !codes.Any())
-                {
-                    return NotFound("No codes found in the database.");
-                }
-
-                return Ok(codes);
+                return Ok(allCodes);
             }
             catch (Exception ex)
             {
@@ -84,16 +67,18 @@ namespace fastwin.Controllers
             }
         }
 
-        [HttpGet("get-code/{id}")]
-        public async Task<IActionResult> GetCodeById(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCodeById(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var code = await _repository.GetByIdAsync(id);
+                var getCodeByIdQuery = new GetCodeByIdQuery(id);
+
+                var code = await _mediator.Send(getCodeByIdQuery, cancellationToken);
 
                 if (code == null)
                 {
-                    return NotFound($"Code with Id {id} not found.");
+                    return NotFound(); 
                 }
 
                 return Ok(code);
@@ -104,8 +89,8 @@ namespace fastwin.Controllers
             }
         }
 
-        [HttpPut("update-code/{id}")]
-        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] bool isActive)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] bool isActive, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(newCode))
             {
@@ -114,26 +99,27 @@ namespace fastwin.Controllers
 
             try
             {
-                if (newCode.Length != 10)
+                var updateCodeCommand = new UpdateCodeCommand
                 {
-                    return BadRequest("newCode must have a length of 10 characters");
-                }
+                    Id = id,
+                    NewCode = newCode,
+                    IsActive = isActive
+                };
 
-                var codeToUpdate = await _repository.GetByIdAsync(id);
+                var updatedCode = await _mediator.Send(updateCodeCommand, cancellationToken);
 
-                if (codeToUpdate != null)
+                if (updatedCode != null)
                 {
-                    codeToUpdate.Code = newCode;
-                    codeToUpdate.IsActive = isActive;
-
-                    await _repository.UpdateAsync(codeToUpdate);
-
-                    return Ok(codeToUpdate);
+                    return Ok(updatedCode);
                 }
                 else
                 {
                     return NotFound($"Code with Id {id} not found");
                 }
+            }
+            catch (ValidationException vex)
+            {
+                return BadRequest(vex.Message);
             }
             catch (Exception ex)
             {

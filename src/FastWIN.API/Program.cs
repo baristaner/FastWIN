@@ -20,7 +20,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddFluentValidationAutoValidation()
     .AddFluentValidationClientsideAdapters()
-    .AddValidatorsFromAssemblyContaining<ProductValidator>();
+    .AddValidatorsFromAssemblyContaining<Program>();
 
 
 builder.Services.AddMediatR(cfg => {
