@@ -1,16 +1,32 @@
 ﻿using fastwin.Entities;
 using fastwin.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace fastwin
 {
-    public class CodeDbContext : DbContext
+    public class CodeDbContext : IdentityDbContext<User>
     {
         public DbSet<Codes> Codes { get; set; }
         public DbSet<Product> Products { get; set; }
+        //public DbSet<Users> Users {  get; set; }
+        public DbSet<UserCode> UserCode { get; set; }
+        public DbSet<Asset> Asset { get; set; }
 
-        public CodeDbContext(DbContextOptions<CodeDbContext> options) : base(options)
+      
+        public CodeDbContext(DbContextOptions<CodeDbContext> options)
+            : base(options)
         {
+        }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<UserCode>()
+            .HasOne(uc => uc.Code)
+            .WithMany() // No navigation property in Codes pointing back to UserCode
+            .HasForeignKey(uc => uc.CodeId);
+
+            base.OnModelCreating(builder);
         }
 
         /* Change tracker mekanizması tarafından izlenen her entity nesnesinin bilgisini
@@ -25,8 +41,8 @@ namespace fastwin
 
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
-                
-                if(entry.State == EntityState.Added)
+
+                if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedAt = now;
                     entry.Entity.ModifiedAt = now;
@@ -41,7 +57,5 @@ namespace fastwin
 
             return await base.SaveChangesAsync(cancellationToken);
         }
-
-
     }
 }

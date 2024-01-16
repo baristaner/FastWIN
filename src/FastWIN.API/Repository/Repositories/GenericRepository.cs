@@ -56,7 +56,7 @@ namespace fastwin.Repository.Repositories
 
         public async Task ExecuteStoredProcedureAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters)
         {
-            await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken, parameters);
+            await _context.Database.ExecuteSqlRawAsync(sql, parameters);
         }
 
         public async Task<IEnumerable<TEntity>> ExecuteSqlQueryAsync<TEntity>(string sql, CancellationToken cancellationToken = default, params object[] parameters) where TEntity : class

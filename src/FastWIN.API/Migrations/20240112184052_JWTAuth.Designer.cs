@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using fastwin;
 
@@ -11,9 +12,11 @@ using fastwin;
 namespace fastwin.Migrations
 {
     [DbContext(typeof(CodeDbContext))]
-    partial class CodeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240112184052_JWTAuth")]
+    partial class JWTAuth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,7 +220,26 @@ namespace fastwin.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("fastwin.Entities.User", b =>
+            modelBuilder.Entity("fastwin.Entities.UserCodes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserCodes");
+                });
+
+            modelBuilder.Entity("fastwin.Entities.Users", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -282,35 +304,6 @@ namespace fastwin.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("fastwin.Entities.UserCode", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CodeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CodeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserCode");
-                });
-
             modelBuilder.Entity("fastwin.Models.Codes", b =>
                 {
                     b.Property<int>("Id")
@@ -330,11 +323,11 @@ namespace fastwin.Migrations
                     b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -352,7 +345,7 @@ namespace fastwin.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("fastwin.Entities.User", null)
+                    b.HasOne("fastwin.Entities.Users", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -361,7 +354,7 @@ namespace fastwin.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("fastwin.Entities.User", null)
+                    b.HasOne("fastwin.Entities.Users", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -376,7 +369,7 @@ namespace fastwin.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("fastwin.Entities.User", null)
+                    b.HasOne("fastwin.Entities.Users", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -385,7 +378,7 @@ namespace fastwin.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("fastwin.Entities.User", null)
+                    b.HasOne("fastwin.Entities.Users", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -409,26 +402,6 @@ namespace fastwin.Migrations
                     b.Navigation("Codes");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("fastwin.Entities.UserCode", b =>
-                {
-                    b.HasOne("fastwin.Models.Codes", "Code")
-                        .WithMany()
-                        .HasForeignKey("CodeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("fastwin.Entities.User", null)
-                        .WithMany("UserCode")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Code");
-                });
-
-            modelBuilder.Entity("fastwin.Entities.User", b =>
-                {
-                    b.Navigation("UserCode");
                 });
 #pragma warning restore 612, 618
         }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using fastwin;
 
@@ -11,9 +12,11 @@ using fastwin;
 namespace fastwin.Migrations
 {
     [DbContext(typeof(CodeDbContext))]
-    partial class CodeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240115104515_Status")]
+    partial class Status
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -290,7 +293,7 @@ namespace fastwin.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CodeId")
+                    b.Property<int?>("CodesId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -304,7 +307,7 @@ namespace fastwin.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodeId");
+                    b.HasIndex("CodesId");
 
                     b.HasIndex("UserId");
 
@@ -413,20 +416,21 @@ namespace fastwin.Migrations
 
             modelBuilder.Entity("fastwin.Entities.UserCode", b =>
                 {
-                    b.HasOne("fastwin.Models.Codes", "Code")
-                        .WithMany()
-                        .HasForeignKey("CodeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("fastwin.Models.Codes", null)
+                        .WithMany("UserCode")
+                        .HasForeignKey("CodesId");
 
                     b.HasOne("fastwin.Entities.User", null)
                         .WithMany("UserCode")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("Code");
                 });
 
             modelBuilder.Entity("fastwin.Entities.User", b =>
+                {
+                    b.Navigation("UserCode");
+                });
+
+            modelBuilder.Entity("fastwin.Models.Codes", b =>
                 {
                     b.Navigation("UserCode");
                 });

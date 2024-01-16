@@ -90,7 +90,7 @@ namespace fastwin.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] bool isActive, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] StatusCode status, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(newCode))
             {
@@ -103,7 +103,7 @@ namespace fastwin.Controllers
                 {
                     Id = id,
                     NewCode = newCode,
-                    IsActive = isActive
+                    Status = status
                 };
 
                 var updatedCode = await _mediator.Send(updateCodeCommand, cancellationToken);
