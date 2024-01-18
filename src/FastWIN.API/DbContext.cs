@@ -2,7 +2,6 @@
 using fastwin.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace fastwin
 {
@@ -10,7 +9,6 @@ namespace fastwin
     {
         public DbSet<Codes> Codes { get; set; }
         public DbSet<Product> Products { get; set; }
-        //public DbSet<Users> Users {  get; set; }
         public DbSet<UserCode> UserCode { get; set; }
         public DbSet<Asset> Asset { get; set; }
 
@@ -21,19 +19,38 @@ namespace fastwin
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<UserCode>()
+           builder.Entity<Asset>()
+           .HasOne(asset => asset.Product)
+           .WithMany()
+           .HasForeignKey(asset => asset.ProductId);
+
+           builder.Entity<Asset>()
+            .HasOne(asset => asset.Codes)
+            .WithMany()
+            .HasForeignKey(asset => asset.CodeId);
+
+            builder.Entity<Asset>()
+            .HasOne(asset => asset.User)
+            .WithMany()
+            .HasForeignKey(asset => asset.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<UserCode>()  
             .HasOne(uc => uc.Code)
-            .WithMany() // No navigation property in Codes pointing back to UserCode
+            .WithMany() 
             .HasForeignKey(uc => uc.CodeId);
+
+            builder.Entity<UserCode>()
+            .HasOne(uc => uc.User)
+            .WithMany() 
+            .HasForeignKey(uc => uc.UserId);
+
+            builder.Entity<Codes>() 
+                .HasIndex(uc => uc.Code).IsClustered(false);
 
             base.OnModelCreating(builder);
         }
 
-        /* Change tracker mekanizması tarafından izlenen her entity nesnesinin bilgisini
-        * EntityEntry türünden elde etmemizi sağlar ve belirli işlemler yapabilmemize olanak tanır.
-        * Entries metodu,DetectChanges metodunu tetikler
-        * NOT : AutoDetectChangesEnabled özelliği 
-        */
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             DateTime now = DateTime.UtcNow;
@@ -54,7 +71,6 @@ namespace fastwin
                     Console.WriteLine($"Entity Type: {entry.Entity.GetType().Name}, State: {entry.State}, ModifiedAt: {entry.Entity.ModifiedAt}");
                 }
             }
-
             return await base.SaveChangesAsync(cancellationToken);
         }
     }

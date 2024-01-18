@@ -19,10 +19,9 @@ namespace fastwin.Infrastructure.JWT
         }
         public string GenerateJWTString(LoginReq user)
         {
-            IEnumerable<Claim> claims = new List<Claim>
+            var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email)
-
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JwtTokenSettings:SecretKey").Value));

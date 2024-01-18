@@ -175,11 +175,17 @@ namespace fastwin.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CodeId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Asset");
                 });
@@ -293,6 +299,9 @@ namespace fastwin.Migrations
                     b.Property<int>("CodeId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CodeStatus")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -300,6 +309,7 @@ namespace fastwin.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -337,6 +347,10 @@ namespace fastwin.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Code"), false);
 
                     b.ToTable("Codes");
                 });
@@ -406,9 +420,17 @@ namespace fastwin.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("fastwin.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Codes");
 
                     b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("fastwin.Entities.UserCode", b =>
@@ -419,16 +441,15 @@ namespace fastwin.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("fastwin.Entities.User", null)
-                        .WithMany("UserCode")
-                        .HasForeignKey("UserId");
+                    b.HasOne("fastwin.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Code");
-                });
 
-            modelBuilder.Entity("fastwin.Entities.User", b =>
-                {
-                    b.Navigation("UserCode");
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

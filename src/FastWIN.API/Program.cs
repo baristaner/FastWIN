@@ -2,7 +2,6 @@ using fastwin;
 using Microsoft.EntityFrameworkCore;
 using fastwin.Repository.Repositories;
 using fastwin.Interfaces;
-using FastWIN.API.Converters;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using MediatR;
@@ -12,6 +11,9 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using fastwin.Entities;
 using fastwin.Infrastructure.JWT;
+using Hangfire;
+using fastwin.Helper.Converters;
+using fastwin.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +63,14 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
+builder.Services.AddHangfire((sp,config) =>
+{
+    var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection");
+    config.UseSqlServerStorage(connectionString);
+});
+
+builder.Services.AddHangfireServer();
+
 builder.Services.AddDbContext<CodeDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -69,6 +79,7 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped(typeof(ICodeRepository<>), typeof(CodeRepository<>));
 
 // Authentication
 builder.Services.AddAuthentication(options => {
@@ -111,6 +122,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwaggerUI();
 }
 
+app.UseHangfireDashboard();
+
 app.UseCors(builder => builder
 .AllowAnyOrigin()
 .AllowAnyMethod()
@@ -120,6 +133,6 @@ app.UseCors(builder => builder
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization();
 
 app.Run();

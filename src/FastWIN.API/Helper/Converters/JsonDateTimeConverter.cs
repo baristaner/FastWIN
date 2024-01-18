@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace FastWIN.API.Converters
+namespace fastwin.Helper.Converters
 {
     public class JsonDateTimeConverter : JsonConverter<DateTime>
     {

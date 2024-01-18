@@ -1,15 +1,16 @@
-﻿using fastwin.Entities;
-using fastwin.Infrastructure.JWT;
+﻿using fastwin.Infrastructure.JWT;
 using fastwin.Requests;
 using fastwin.Requests.Users.Commands.Register;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace fastwin.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -49,7 +50,7 @@ namespace fastwin.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest(ex.Errors.Select(e => e.ErrorMessage));
+                return StatusCode(422, ex.Errors.Select(e => e.ErrorMessage));
             }
             catch (Exception ex)
             {
@@ -81,7 +82,7 @@ namespace fastwin.Controllers
             }
             catch (ValidationException ex)
             {
-                return BadRequest($"Validation failed: {ex.Message}");
+                return StatusCode(422, ex.Errors.Select(e => e.ErrorMessage));
             }
             catch (Exception ex)
             {

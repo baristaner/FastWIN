@@ -2,14 +2,14 @@
 using fastwin.Features.Products.Commands.AddProduct;
 using fastwin.Interfaces;
 using fastwin.Models;
-using FluentValidation;
 using MediatR;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 public class GenerateCodesCommandHandler : IRequestHandler<GenerateCodesCommand, Codes>
 {
     private readonly IRepository<Codes> _repository;
-   
+
     public GenerateCodesCommandHandler(IRepository<Codes> repository)
     {
         _repository = repository;
@@ -23,15 +23,27 @@ public class GenerateCodesCommandHandler : IRequestHandler<GenerateCodesCommand,
 
             var parameters = new[]
             {
-            new SqlParameter("@NumOfCodes", request.CodeRequest.NumOfCodes),
-            new SqlParameter("@CharacterSet", request.CodeRequest.CharacterSet),
-            new SqlParameter("@ExpirationMonths", request.CodeRequest.ExpirationMonths),
-            new SqlParameter("@ExpirationDate", (object)request.CodeRequest.ExpirationDate ?? DBNull.Value)
-        };
+                new SqlParameter("@NumOfCodes", request.CodeRequest.NumOfCodes),
+                new SqlParameter("@CharacterSet", request.CodeRequest.CharacterSet),
+                new SqlParameter("@ExpirationMonths", request.CodeRequest.ExpirationMonths),
+                new SqlParameter("@ExpirationDate", (object)request.CodeRequest.ExpirationDate ?? DBNull.Value)
+            };
 
-            await _repository.ExecuteStoredProcedureAsync(sql, cancellationToken, parameters);
+            await _repository.ExecuteSqlAsync(sql, cancellationToken, parameters);
 
-            return new Codes(); // i have to turn back and change the return method
+            return new Codes(); 
+        }
+        catch (DbUpdateException ex)
+        {
+            if (ex.InnerException is SqlException sqlException)
+            {
+                Console.WriteLine($"SQL Exception Number: {sqlException.Number}, Message: {sqlException.Message}");
+
+                throw new ApplicationException("An error occurred while generating codes.", ex);
+            }
+
+            Console.WriteLine(ex.ToString());
+            throw new ApplicationException("An error occurred while generating codes.", ex);
         }
         catch (Exception ex)
         {

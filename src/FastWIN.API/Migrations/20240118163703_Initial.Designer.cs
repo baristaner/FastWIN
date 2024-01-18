@@ -12,8 +12,8 @@ using fastwin;
 namespace fastwin.Migrations
 {
     [DbContext(typeof(CodeDbContext))]
-    [Migration("20240115104515_Status")]
-    partial class Status
+    [Migration("20240118163703_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -178,11 +178,17 @@ namespace fastwin.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CodeId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Asset");
                 });
@@ -293,7 +299,10 @@ namespace fastwin.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CodesId")
+                    b.Property<int>("CodeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodeStatus")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -303,11 +312,12 @@ namespace fastwin.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodesId");
+                    b.HasIndex("CodeId");
 
                     b.HasIndex("UserId");
 
@@ -340,6 +350,10 @@ namespace fastwin.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code");
+
+                    SqlServerIndexBuilderExtensions.IsClustered(b.HasIndex("Code"), false);
 
                     b.ToTable("Codes");
                 });
@@ -409,30 +423,36 @@ namespace fastwin.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("fastwin.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Codes");
 
                     b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("fastwin.Entities.UserCode", b =>
                 {
-                    b.HasOne("fastwin.Models.Codes", null)
-                        .WithMany("UserCode")
-                        .HasForeignKey("CodesId");
+                    b.HasOne("fastwin.Models.Codes", "Code")
+                        .WithMany()
+                        .HasForeignKey("CodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("fastwin.Entities.User", null)
-                        .WithMany("UserCode")
-                        .HasForeignKey("UserId");
-                });
+                    b.HasOne("fastwin.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-            modelBuilder.Entity("fastwin.Entities.User", b =>
-                {
-                    b.Navigation("UserCode");
-                });
+                    b.Navigation("Code");
 
-            modelBuilder.Entity("fastwin.Models.Codes", b =>
-                {
-                    b.Navigation("UserCode");
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

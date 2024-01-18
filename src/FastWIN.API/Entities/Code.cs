@@ -13,7 +13,6 @@ namespace fastwin.Models
 
         public StatusCode Status { get; set; }
 
-        //public List<UserCode> UserCode { get; set; }
     }
 
     public enum StatusCode

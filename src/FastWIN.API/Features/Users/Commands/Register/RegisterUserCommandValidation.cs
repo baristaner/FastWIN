@@ -7,7 +7,7 @@ namespace fastwin.Features.Users.Commands.Register
     {
         public RegisterUserCommandValidation()
         {
-            RuleFor(x => x.UserName).NotEmpty().Length(4,12).WithMessage("Username must be 4 to 12 characters.");
+            RuleFor(x => x.UserName).NotEmpty().Length(4,20).WithMessage("Username must be 4 to 20 characters.");
             RuleFor(x => x.Email).NotEmpty().EmailAddress().WithMessage("Please enter a valid email adress");
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
