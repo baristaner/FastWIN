@@ -9,8 +9,16 @@ namespace fastwin.Models
         [StringLength(10)]
         public string Code { get; set; }
 
-        public DateTime ExpirationDate { get; set; } 
+        public DateTime ExpirationDate { get; set; }
 
-        public bool IsActive { get; set; }
+        public StatusCode Status { get; set; }
+
+    }
+
+    public enum StatusCode
+    {
+        Active,
+        Passive,
+        Locked
     }
 }

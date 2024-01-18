@@ -6,6 +6,8 @@ using MediatR;
 using FluentValidation;
 using fastwin.Features.Code.Queries.GetAllCodes;
 using System.Threading;
+using fastwin.Features.Code.Queries.GetByCode;
+using Microsoft.AspNetCore.Authorization;
 
 namespace fastwin.Controllers
 {
@@ -36,7 +38,7 @@ namespace fastwin.Controllers
                 }
 
                 var generateCodesCommand = new GenerateCodesCommand(generateCodesRequest);
-                
+
                 var generatedCodes = await _mediator.Send(generateCodesCommand, cancellationToken);
 
                 return Ok("Codes Generated successfuly");
@@ -51,13 +53,13 @@ namespace fastwin.Controllers
             }
         }
 
-        [HttpGet("get-all-codes")]
-        public async Task<IActionResult> GetAllCodes(CancellationToken cancellationToken) // HTTP REST API STANDARTS
+        [HttpGet]
+        public async Task<IActionResult> GetAllCodes(CancellationToken cancellationToken) 
         {
             try
             {
                 var getAllCodesQuery = new GetAllCodesQuery();
-                var allCodes = await _mediator.Send(getAllCodesQuery,cancellationToken);
+                var allCodes = await _mediator.Send(getAllCodesQuery, cancellationToken);
 
                 return Ok(allCodes);
             }
@@ -78,7 +80,7 @@ namespace fastwin.Controllers
 
                 if (code == null)
                 {
-                    return NotFound(); 
+                    return NotFound();
                 }
 
                 return Ok(code);
@@ -90,7 +92,7 @@ namespace fastwin.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] bool isActive, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateCode(int id, [FromForm] string newCode, [FromForm] StatusCode status, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(newCode))
             {
@@ -103,7 +105,7 @@ namespace fastwin.Controllers
                 {
                     Id = id,
                     NewCode = newCode,
-                    IsActive = isActive
+                    Status = status
                 };
 
                 var updatedCode = await _mediator.Send(updateCodeCommand, cancellationToken);
@@ -127,5 +129,20 @@ namespace fastwin.Controllers
             }
         }
 
+        [HttpPost("scan")]
+        public async Task<IActionResult> ScanCode([FromBody] ScanCodeRequest scanCodeRequest, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var lockAndInsertUserCodesCommand = new LockAndInsertUserCodesCommand(scanCodeRequest.Code, scanCodeRequest.UserId);
+                await _mediator.Send(lockAndInsertUserCodesCommand, cancellationToken);
+
+                return Ok("Code is scanned successfuly");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred. {ex.Message}");
+            }
+        }
     }
 }

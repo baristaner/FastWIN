@@ -23,9 +23,7 @@ public class UpdateCodeCommandHandler : IRequestHandler<UpdateCodeCommand, Codes
             var codeToUpdate = await _codeRepository.GetByIdAsync(request.Id);
 
             codeToUpdate.Code = request.NewCode;
-            codeToUpdate.IsActive = request.IsActive;
-
-           
+            codeToUpdate.Status = request.Status;
 
             var validationContext = new ValidationContext<Codes>(codeToUpdate);
             var validationResult = await _validator.ValidateAsync(validationContext);

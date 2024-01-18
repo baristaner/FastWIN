@@ -11,7 +11,7 @@ namespace fastwin.Interfaces
         Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
         Task DeleteAsync(int id, CancellationToken cancellationToken = default);
-        Task ExecuteStoredProcedureAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters);
+        Task ExecuteSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters);
         Task<IEnumerable<TEntity>> ExecuteSqlQueryAsync<TEntity>(string sql, CancellationToken cancellationToken = default, params object[] parameters) where TEntity : class;
     }
 }
