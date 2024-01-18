@@ -8,6 +8,7 @@ using fastwin.Features.Code.Queries.GetAllCodes;
 using System.Threading;
 using fastwin.Features.Code.Queries.GetByCode;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace fastwin.Controllers
 {
@@ -22,7 +23,7 @@ namespace fastwin.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("generate-codes")]
+        [HttpPost("generate")]
         public async Task<IActionResult> GenerateCodes([FromBody] GenerateCodesRequest generateCodesRequest, CancellationToken cancellationToken)
         {
             try
@@ -134,15 +135,19 @@ namespace fastwin.Controllers
         {
             try
             {
-                var lockAndInsertUserCodesCommand = new LockAndInsertUserCodesCommand(scanCodeRequest.Code, scanCodeRequest.UserId);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var lockAndInsertUserCodesCommand = new LockAndInsertUserCodesCommand(scanCodeRequest.Code, userId);
+
                 await _mediator.Send(lockAndInsertUserCodesCommand, cancellationToken);
 
-                return Ok("Code is scanned successfuly");
+                return Ok("Code is scanned successfully");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred. {ex.Message}");
             }
         }
+
     }
 }

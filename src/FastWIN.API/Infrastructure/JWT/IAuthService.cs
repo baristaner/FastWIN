@@ -4,6 +4,6 @@ namespace fastwin.Infrastructure.JWT
 {
     public interface IAuthService
     {
-        string GenerateJWTString(LoginReq user);
+        Task <string> GenerateJWTString(LoginReq user);
     }
 }

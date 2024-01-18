@@ -14,6 +14,8 @@ using fastwin.Infrastructure.JWT;
 using Hangfire;
 using fastwin.Helper.Converters;
 using fastwin.Models;
+using fastwin.Infrastructure.UnitOfWork;
+using fastwin.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,7 @@ builder.Services.AddMediatR(cfg => {
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
 {
+    option.DocumentFilter<HideUserIdPropertyFilter>();
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "FastWIN API", Version = "v1" });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -69,7 +72,9 @@ builder.Services.AddHangfire((sp,config) =>
     config.UseSqlServerStorage(connectionString);
 });
 
+
 builder.Services.AddHangfireServer();
+
 
 builder.Services.AddDbContext<CodeDbContext>(options =>
 {
@@ -78,6 +83,7 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 });
 
 builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped(typeof(ICodeRepository<>), typeof(CodeRepository<>));
 
@@ -122,7 +128,9 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwaggerUI();
 }
 
+app.UseHangfireServer();
 app.UseHangfireDashboard();
+RecurringJob.AddOrUpdate<CodeStatusJob>("CheckAndResetLockedCodes", x => x.CheckAndResetLockedCodes(), "*/5 * * * *");
 
 app.UseCors(builder => builder
 .AllowAnyOrigin()

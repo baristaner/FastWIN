@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace fastwin.Controllers
 {
@@ -17,7 +18,7 @@ namespace fastwin.Controllers
         }
 
 
-        [HttpPost("createasset")]
+        [HttpPost]
         public async Task<IActionResult> CreateAsset([FromBody] CreateAssetRequest createAssetRequest, CancellationToken cancellationToken)
         {
             try
@@ -32,9 +33,12 @@ namespace fastwin.Controllers
                     return BadRequest(validationErrors);
                 }
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                createAssetRequest.UserId = userId;
+
                 var generatedAssetCommand = new CreateAssetCommand(createAssetRequest);
 
-                await _mediator.Send(generatedAssetCommand);
+                await _mediator.Send(generatedAssetCommand,cancellationToken);
 
                 return Ok("Asset Generated successfuly");
             }
