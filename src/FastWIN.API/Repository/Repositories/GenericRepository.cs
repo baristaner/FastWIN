@@ -2,8 +2,6 @@
 using fastwin.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using System.Security.Cryptography;
-
 
 namespace fastwin.Repository.Repositories
 {
@@ -57,7 +55,7 @@ namespace fastwin.Repository.Repositories
 
         public async Task ExecuteSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters)
         {
-          await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+          await _context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
         }
 
         public async Task<IEnumerable<TEntity>> ExecuteSqlQueryAsync<TEntity>(string sql, CancellationToken cancellationToken = default, params object[] parameters) where TEntity : class

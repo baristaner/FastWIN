@@ -18,5 +18,11 @@ namespace fastwin.Repository.Repositories
         {
             return await _context.Set<Codes>().FirstOrDefaultAsync(c => c.Code == code, cancellationToken);
         }
+
+        public async Task<IEnumerable<Codes>> GetLockedCodesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<Codes>().Where(c => c.Status == StatusCode.Locked).ToListAsync(cancellationToken);
+        }
     }
 }
+

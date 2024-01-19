@@ -9,15 +9,17 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Uni
 {
     private readonly IRepository<Asset> _assetRepository;
     private readonly IRepository<UserCode> _userCodeRepository;
+    private readonly IRepository<Product> _productRepository;
     private readonly ICodeRepository<Codes> _codeRepository;
     private readonly UserManager<User> _userManager;
 
-    public CreateAssetCommandHandler(IRepository<Asset> assetRepository, IRepository<UserCode> userCodeRepository, ICodeRepository<Codes> codeRepository,UserManager<User> userManager)
+    public CreateAssetCommandHandler(IRepository<Asset> assetRepository, IRepository<UserCode> userCodeRepository, ICodeRepository<Codes> codeRepository,UserManager<User> userManager,IRepository<Product> productRepository)
     {
         _assetRepository = assetRepository;
         _userCodeRepository = userCodeRepository;
         _codeRepository = codeRepository;
         _userManager = userManager;
+        _productRepository = productRepository;
     }
     
 
@@ -26,9 +28,11 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Uni
         try
         {
             var user = await _userManager.FindByIdAsync(request.CreateAssetRequest.UserId);
+            var product = await _productRepository.GetByIdAsync(request.CreateAssetRequest.ProductId);
             var code = await _codeRepository.GetByCodeAsync(request.CreateAssetRequest.Code);
+            var userCodes = await _userCodeRepository.FindAsync(uc => uc.CodeId == code.Id && uc.UserId == user.Id ,cancellationToken);
 
-            if(user == null)
+            if (user == null)
             {
                 throw new ArgumentException("User does not exist");
             }
@@ -36,6 +40,16 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Uni
             if (code == null)
             {
                 throw new ArgumentException("Code does not exist");
+            }
+
+            if (userCodes == null || !userCodes.Any())
+            {
+                throw new InvalidOperationException("The specified code does not belong to the user.");
+            }
+
+            if (product.LastUsageDate < DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("The product's LastUsageDate has passed. Please select another product.");
             }
 
             int codeId = code.Id;

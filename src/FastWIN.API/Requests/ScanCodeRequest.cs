@@ -3,6 +3,5 @@
     public class ScanCodeRequest
     {
        public string Code { get; set; }
-       public string UserId { get; set; }
     }
 }

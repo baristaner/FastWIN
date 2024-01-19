@@ -30,20 +30,18 @@ namespace fastwin.Controllers
                 var registerCommand = new RegisterUserCommand(user);
                 var result = await _mediator.Send(registerCommand, cancellationToken);
 
-                if (result != null) // at this moment we don't have any email verification,so i'm logging user directly after registration
+                if (result != null)
                 {
+                    // at this moment we don't have any email verification, so I'm logging user directly after registration
                     var loginReq = new LoginReq
                     {
                         Email = user.Email,
                         Password = user.Password
                     };
 
-                    var tokenString = _authService.GenerateJWTString(loginReq); // also i can create a method called ToLoginReq() instead of doing this logic in controller
-                    var response = new
-                    {
-                        accessToken = tokenString
-                    };
-                    return Ok(response);
+                    var tokenString = await _authService.GenerateJWTString(loginReq);
+
+                    return Ok(new { accessToken = tokenString });
                 }
 
                 return BadRequest($"Failed to register {user.Email}");
@@ -68,14 +66,9 @@ namespace fastwin.Controllers
 
                 if (result != null)
                 {
-                    var tokenString = _authService.GenerateJWTString(user);
+                    var tokenString = await _authService.GenerateJWTString(user);
 
-                    var response = new
-                    {
-                        accessToken = tokenString
-                    };
-
-                    return Ok(response);
+                    return Ok(new { accessToken = tokenString });
                 }
 
                 return BadRequest($"Failed to login. Email or password is incorrect.");
@@ -89,5 +82,6 @@ namespace fastwin.Controllers
                 return StatusCode(500, $"An error occurred during login. {ex.Message}");
             }
         }
+
     }
 }

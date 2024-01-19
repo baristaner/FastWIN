@@ -16,32 +16,44 @@ public class LockAndInsertUserCodesCommandHandler : IRequestHandler<LockAndInser
         _userCodeRepository = userCodeRepository;
     }
 
-    public async Task<Unit> Handle(LockAndInsertUserCodesCommand request, CancellationToken cancellationToken)
-    {
-        var selectedcode = await _codeRepository.GetByCodeAsync(request.Code);
-
-        if (selectedcode == null)
+        public async Task<Unit> Handle(LockAndInsertUserCodesCommand request, CancellationToken cancellationToken)
         {
-            throw new ArgumentNullException(nameof(selectedcode), "Code cannot be null for this operation");
-        }
+            try
+            {
+               // There is no transaction because, at this moment this project does not contain unit of work
+               // I have to implement unit of work as soon as possible
+               
+                var selectedcode = await _codeRepository.GetByCodeAsync(request.Code);
 
-        if (selectedcode.ExpirationDate < DateTime.UtcNow)
-        {
-            throw new InvalidOperationException("The code has expired");
-        }
+                if (selectedcode == null)
+                {
+                    throw new ArgumentNullException(nameof(selectedcode), "Code cannot be null for this operation");
+                }
 
-        if (selectedcode.Status == StatusCode.Passive)
-        {
-            throw new InvalidOperationException("This code is already used");
-        }
+                if (selectedcode.ExpirationDate < DateTime.UtcNow)
+                {
+                    throw new InvalidOperationException("The code has expired");
+                }
 
-        selectedcode.Status = StatusCode.Locked;
+                if (selectedcode.Status == StatusCode.Passive)
+                {
+                    throw new InvalidOperationException("This code is already used");
+                }
 
-        await _codeRepository.UpdateAsync(selectedcode, cancellationToken);
+                selectedcode.Status = StatusCode.Locked;
 
-        var userCode = new UserCode { CodeId = selectedcode.Id, UserId = request.UserId };
-        await _userCodeRepository.AddAsync(userCode, cancellationToken);
+                await _codeRepository.UpdateAsync(selectedcode, cancellationToken);
 
-        return Unit.Value;
-    }
+                var userCode = new UserCode { CodeId = selectedcode.Id, UserId = request.UserId };
+                await _userCodeRepository.AddAsync(userCode, cancellationToken);
+
+
+                return Unit.Value;
+            }
+            catch (Exception ex)
+            {
+                
+                throw new InvalidOperationException("An error occurred. Details: " + ex.Message, ex);
+             } 
+   }
 }

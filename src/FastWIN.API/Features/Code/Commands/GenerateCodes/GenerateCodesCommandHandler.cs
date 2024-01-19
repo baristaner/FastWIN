@@ -1,6 +1,4 @@
-﻿using fastwin.Entities;
-using fastwin.Features.Products.Commands.AddProduct;
-using fastwin.Interfaces;
+﻿using fastwin.Interfaces;
 using fastwin.Models;
 using MediatR;
 using Microsoft.Data.SqlClient;
