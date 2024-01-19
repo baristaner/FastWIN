@@ -44,7 +44,7 @@ public class CreateAssetCommandHandler : IRequestHandler<CreateAssetCommand, Uni
 
             if (userCodes == null || !userCodes.Any())
             {
-                throw new InvalidOperationException("The specified code does not belong to the user or is not locked.");
+                throw new InvalidOperationException("The specified code does not belong to the user.");
             }
 
             if (product.LastUsageDate < DateTime.UtcNow)

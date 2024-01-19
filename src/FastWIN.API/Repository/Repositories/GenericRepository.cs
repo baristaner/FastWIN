@@ -1,22 +1,17 @@
 ﻿using fastwin.Entities;
-using fastwin.Infrastructure.UnitOfWork;
 using fastwin.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using System.Security.Cryptography;
-
 
 namespace fastwin.Repository.Repositories
 {
     public class GenericRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
     {
         private readonly CodeDbContext _context;
-        private readonly IUnitOfWork _unitOfWork;
 
-        public GenericRepository(CodeDbContext context, IUnitOfWork unitOfWork)
+        public GenericRepository(CodeDbContext context)
         {
             _context = context;
-            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -37,7 +32,7 @@ namespace fastwin.Repository.Repositories
         public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             await _context.Set<TEntity>().AddAsync(entity, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
@@ -45,7 +40,7 @@ namespace fastwin.Repository.Repositories
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
             _context.Update(entity);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
@@ -54,7 +49,7 @@ namespace fastwin.Repository.Repositories
             if (entity != null)
             {
                 _context.Set<TEntity>().Remove(entity);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
             }
         }
 

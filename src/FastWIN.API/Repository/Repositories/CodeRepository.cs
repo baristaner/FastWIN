@@ -1,5 +1,4 @@
 ﻿using fastwin.Entities;
-using fastwin.Infrastructure.UnitOfWork;
 using fastwin.Interfaces;
 using fastwin.Models;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +8,10 @@ namespace fastwin.Repository.Repositories
     public class CodeRepository<TEntity> : GenericRepository<TEntity>, ICodeRepository<TEntity> where TEntity : BaseEntity
     {
         private readonly CodeDbContext _context;
-        private readonly IUnitOfWork _unitOfWork; 
 
-        public CodeRepository(CodeDbContext context, IUnitOfWork unitOfWork) : base(context, unitOfWork)
+        public CodeRepository(CodeDbContext context) : base(context)
         {
             _context = context;
-            _unitOfWork = unitOfWork; 
         }
 
         public async Task<Codes> GetByCodeAsync(string code, CancellationToken cancellationToken = default)

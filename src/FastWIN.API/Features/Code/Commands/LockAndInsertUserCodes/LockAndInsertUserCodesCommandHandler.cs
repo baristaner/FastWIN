@@ -1,5 +1,4 @@
 ﻿using fastwin.Entities;
-using fastwin.Infrastructure.UnitOfWork;
 using fastwin.Interfaces;
 using fastwin.Models;
 using MediatR;
@@ -8,24 +7,22 @@ public class LockAndInsertUserCodesCommandHandler : IRequestHandler<LockAndInser
 {
     private readonly IRepository<UserCode> _userCodeRepository;
     private readonly ICodeRepository<Codes> _codeRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public LockAndInsertUserCodesCommandHandler(
         ICodeRepository<Codes> codeRepository,
-        IRepository<UserCode> userCodeRepository,
-        IUnitOfWork unitOfWork)
+        IRepository<UserCode> userCodeRepository)
     {
         _codeRepository = codeRepository;
         _userCodeRepository = userCodeRepository;
-        _unitOfWork = unitOfWork;
     }
 
         public async Task<Unit> Handle(LockAndInsertUserCodesCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync(cancellationToken);
-
+               // There is no transaction because, at this moment this project does not contain unit of work
+               // I have to implement unit of work as soon as possible
+               
                 var selectedcode = await _codeRepository.GetByCodeAsync(request.Code);
 
                 if (selectedcode == null)
@@ -50,18 +47,13 @@ public class LockAndInsertUserCodesCommandHandler : IRequestHandler<LockAndInser
                 var userCode = new UserCode { CodeId = selectedcode.Id, UserId = request.UserId };
                 await _userCodeRepository.AddAsync(userCode, cancellationToken);
 
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
                 return Unit.Value;
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw new InvalidOperationException("An error occurred during the transaction. Details: " + ex.Message, ex);
-        }
-            finally
-            {
-                _unitOfWork.Dispose();
-            }
-        }
+                
+                throw new InvalidOperationException("An error occurred. Details: " + ex.Message, ex);
+             } 
+   }
 }

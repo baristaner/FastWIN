@@ -17,7 +17,7 @@ namespace fastwin.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("add-product")]
+        [HttpPost]
         public async Task<IActionResult> AddProduct([FromBody] ProductRequest productDto,CancellationToken cancellationToken)
         {
             try

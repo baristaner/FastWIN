@@ -14,7 +14,6 @@ using fastwin.Infrastructure.JWT;
 using Hangfire;
 using fastwin.Helper.Converters;
 using fastwin.Models;
-using fastwin.Infrastructure.UnitOfWork;
 using fastwin.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -83,7 +82,6 @@ builder.Services.AddDbContext<CodeDbContext>(options =>
 });
 
 builder.Services.AddTransient<IAuthService, AuthService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped(typeof(ICodeRepository<>), typeof(CodeRepository<>));
 
